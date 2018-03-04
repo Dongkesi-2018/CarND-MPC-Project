@@ -114,11 +114,11 @@ int main() {
           Eigen::Map<Eigen::VectorXd> ptsy_e(&ptsy[0], ptsy.size());
 
           auto coeffs = polyfit(ptsx_e, ptsy_e, 3);
-          double cte = polyeval(coeffs, px) - py;
-          double epsi = psi - atan(coeffs[1]);
+          double cte = polyeval(coeffs,0);
+          double epsi = 0 - atan(coeffs[1]);
 
           Eigen::VectorXd state(6);
-          state << px, py, psi, v, cte, epsi;
+          state << 0, 0, 0, v, cte, epsi;
 
           auto vars = mpc.Solve(state, coeffs);
           steer_value = vars[0];
