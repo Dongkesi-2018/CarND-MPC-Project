@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
           auto vars = mpc.Solve(state, coeffs);
 
           const double beta = 0.5;
-          steer_value = beta * steer_value * (1 - beta) * vars[0];
+          steer_value = beta * steer_value + (1 - beta) * vars[0];
           throttle_value = vars[1];
 
           json msgJson;
