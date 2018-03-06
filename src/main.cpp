@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
 
           const double beta = 0.5;
           const double Lf = 2.67;
-          steer_value = beta * steer_value + (1 - beta) * vars[0] / (deg2rad(25) * Lf);
+          steer_value = beta * steer_value + (1 - beta) * vars[0] / (deg2rad(25));
           throttle_value = vars[1];
 
           json msgJson;
