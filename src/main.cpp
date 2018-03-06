@@ -146,14 +146,15 @@ int main(int argc, char *argv[]) {
           auto vars = mpc.Solve(state, coeffs);
 
           const double beta = 0.5;
-          steer_value = beta * steer_value + (1 - beta) * vars[0];
+          const double Lf = 2.67;
+          steer_value = beta * steer_value + (1 - beta) * vars[0] / (deg2rad(25) * Lf);
           throttle_value = vars[1];
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          const double Lf = 2.67;
-          msgJson["steering_angle"] = steer_value / (deg2rad(25) * Lf);
+          
+          msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value;
 
           //Display the MPC predicted trajectory
