@@ -32,6 +32,14 @@ size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
+int CTE_SMOOTH = 2000;
+int EPSI_SMOOTH = 2000;
+int V_SMOOTH = 1;
+int DELTA_SMOOTH = 5;
+int A_SMOOTH = 5;
+int DELTA_DIFF_SMOOTH = 200;
+int A_DIFF_SMOOTH = 10;
+
 class FG_eval {
  public:
   // Fitted polynomial coefficients
@@ -52,20 +60,20 @@ class FG_eval {
     // TODO: Define the cost related the reference state and
     // any anything you think may be beneficial.
     for (int t = 0; t != N; t++) {
-      fg[0] += CppAD::pow(vars[cte_start + t], 2);
-      fg[0] += CppAD::pow(vars[epsi_start + t], 2);
-      fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
+      fg[0] += CTE_SMOOTH * CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += EPSI_SMOOTH * CppAD::pow(vars[epsi_start + t], 2);
+      fg[0] += V_SMOOTH * CppAD::pow(vars[v_start + t] - ref_v, 2);
     }
 
     for (int t = 0; t != N - 1; t++) {
-      fg[0] += CppAD::pow(vars[delta_start + t], 2);
-      fg[0] += CppAD::pow(vars[a_start + t], 2);
+      fg[0] += DELTA_SMOOTH * CppAD::pow(vars[delta_start + t], 2);
+      fg[0] += A_SMOOTH * CppAD::pow(vars[a_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
     for (int t = 0; t < N - 2; t++) {
-      fg[0] += 500 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-      fg[0] += CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+      fg[0] += DELTA_DIFF_SMOOTH * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+      fg[0] += A_DIFF_SMOOTH * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
     //
     // Setup Constraints

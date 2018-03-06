@@ -65,11 +65,34 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
   return result;
 }
 
-int main() {
+extern int CTE_SMOOTH;
+extern int EPSI_SMOOTH;
+extern int V_SMOOTH;
+extern int DELTA_SMOOTH;
+extern int A_SMOOTH;
+extern int DELTA_DIFF_SMOOTH;
+extern int A_DIFF_SMOOTH;
+extern double ref_v;
+
+int main(int argc, char *argv[]) {
   uWS::Hub h;
 
   // MPC is initialized here!
   MPC mpc;
+
+  if (argc == 9) {
+    ref_v = atof(argv[1]);
+    CTE_SMOOTH = atoi(argv[2]);
+    EPSI_SMOOTH = atoi(argv[3]);
+    V_SMOOTH = atoi(argv[4]);
+    DELTA_SMOOTH = atoi(argv[5]);
+    A_SMOOTH = atoi(argv[6]);
+    DELTA_DIFF_SMOOTH = atoi(argv[7]);
+    A_DIFF_SMOOTH = atoi(argv[8]);
+  }
+
+  std::cout << "SMOOTH Parameters: " << "ref_v" << ref_v << std::endl;
+  std::cout << "SMOOTH Parameters: " << "CTE_SMOOTH" << CTE_SMOOTH << std::endl;
 
   h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
