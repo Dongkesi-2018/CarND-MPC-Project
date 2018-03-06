@@ -32,13 +32,13 @@ size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
-int CTE_SMOOTH = 2000;
-int EPSI_SMOOTH = 2000;
-int V_SMOOTH = 1;
-int DELTA_SMOOTH = 5;
-int A_SMOOTH = 5;
-int DELTA_DIFF_SMOOTH = 200;
-int A_DIFF_SMOOTH = 10;
+double CTE_SMOOTH = 2000;
+double EPSI_SMOOTH = 2000;
+double V_SMOOTH = 1;
+double DELTA_SMOOTH = 5;
+double A_SMOOTH = 5;
+double DELTA_DIFF_SMOOTH = 200;
+double A_DIFF_SMOOTH = 10;
 
 class FG_eval {
  public:

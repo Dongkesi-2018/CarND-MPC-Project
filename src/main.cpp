@@ -65,14 +65,16 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
   return result;
 }
 
-extern int CTE_SMOOTH;
-extern int EPSI_SMOOTH;
-extern int V_SMOOTH;
-extern int DELTA_SMOOTH;
-extern int A_SMOOTH;
-extern int DELTA_DIFF_SMOOTH;
-extern int A_DIFF_SMOOTH;
+extern double CTE_SMOOTH;
+extern double EPSI_SMOOTH;
+extern double V_SMOOTH;
+extern double DELTA_SMOOTH;
+extern double A_SMOOTH;
+extern double DELTA_DIFF_SMOOTH;
+extern double A_DIFF_SMOOTH;
 extern double ref_v;
+
+extern double dt;
 
 int main(int argc, char *argv[]) {
   uWS::Hub h;
@@ -82,13 +84,13 @@ int main(int argc, char *argv[]) {
 
   if (argc == 9) {
     ref_v = atof(argv[1]);
-    CTE_SMOOTH = atoi(argv[2]);
-    EPSI_SMOOTH = atoi(argv[3]);
-    V_SMOOTH = atoi(argv[4]);
-    DELTA_SMOOTH = atoi(argv[5]);
-    A_SMOOTH = atoi(argv[6]);
-    DELTA_DIFF_SMOOTH = atoi(argv[7]);
-    A_DIFF_SMOOTH = atoi(argv[8]);
+    CTE_SMOOTH = atof(argv[2]);
+    EPSI_SMOOTH = atof(argv[3]);
+    V_SMOOTH = atof(argv[4]);
+    DELTA_SMOOTH = atof(argv[5]);
+    A_SMOOTH = atof(argv[6]);
+    DELTA_DIFF_SMOOTH = atof(argv[7]);
+    A_DIFF_SMOOTH = atof(argv[8]);
   }
 
   std::cout << "SMOOTH Parameters: " << "ref_v" << ref_v << std::endl;
@@ -114,6 +116,9 @@ int main(int argc, char *argv[]) {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+          double steer_value = j[1]["steering_angle"];
+          double throttle_value = j[1]["throttle"];
+          const double Lf = 2.67;
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -121,8 +126,13 @@ int main(int argc, char *argv[]) {
           * Both are in between [-1, 1].
           *
           */
-          static double steer_value = j[1]["steering_angle"];
-          double throttle_value;// = j[1]["throttle"];
+
+          // Add latency compensation
+          double latency = 0.1;
+          px = px + v * cos(psi) * latency;
+          py = py + v * sin(psi) * latency;
+          psi = psi + v * steer_value / Lf * latency;
+          v = v + throttle_value * latency;
 
           // Convert map coordinates to car coordinates
           for (auto i = 0; i != ptsx.size(); i++) {
@@ -138,7 +148,7 @@ int main(int argc, char *argv[]) {
 
           auto coeffs = polyfit(ptsx_e, ptsy_e, 3);
           double cte = polyeval(coeffs,0);
-          double epsi = 0 - atan(coeffs[1]);
+          double epsi = - atan(coeffs[1]);
 
           Eigen::VectorXd state(6);
           state << 0, 0, 0, v, cte, epsi;
@@ -146,7 +156,6 @@ int main(int argc, char *argv[]) {
           auto vars = mpc.Solve(state, coeffs);
 
           const double beta = 0.5;
-          const double Lf = 2.67;
           steer_value = beta * steer_value + (1 - beta) * vars[0] / (deg2rad(25));
           throttle_value = vars[1];
 
