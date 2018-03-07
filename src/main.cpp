@@ -130,14 +130,14 @@ int main(int argc, char *argv[]) {
           * Both are in between [-1, 1].
           *
           */
-          /*
+
           // Add latency compensation
           double latency = 0.1;
           px = px + v * cos(psi) * latency;
           py = py + v * sin(psi) * latency;
           psi = psi + v * steer_value / Lf * latency;
           v = v + throttle_value * latency;
-          */
+
           // Convert map coordinates to car coordinates
           for (auto i = 0; i != ptsx.size(); i++) {
             double x_n = ptsx[i] - px;
