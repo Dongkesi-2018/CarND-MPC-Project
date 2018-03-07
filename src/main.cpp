@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
   // MPC is initialized here!
   MPC mpc;
 
-  if (argc == 9) {
+  if (argc == 11) {
     ref_v = atof(argv[1]);
     CTE_SMOOTH = atof(argv[2]);
     EPSI_SMOOTH = atof(argv[3]);
@@ -160,6 +160,10 @@ int main(int argc, char *argv[]) {
           auto vars = mpc.Solve(state, coeffs);
 
           steer_value = beta * steer_value + (1 - beta) * vars[0] / deg2rad(25);
+          if (steer_value > 1)
+            steer_value = 1;
+          if (steer_value < -1)
+            steer_value = -1;
           throttle_value = theta * throttle_value + (1 - theta) * vars[1];
 
           json msgJson;
