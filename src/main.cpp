@@ -75,7 +75,9 @@ extern double A_DIFF_SMOOTH;
 extern double ref_v;
 
 extern double dt;
-
+static double beta = 0.5;
+static double theta = 0.5;
+static int step = 0;
 int main(int argc, char *argv[]) {
   uWS::Hub h;
 
@@ -91,6 +93,8 @@ int main(int argc, char *argv[]) {
     A_SMOOTH = atof(argv[6]);
     DELTA_DIFF_SMOOTH = atof(argv[7]);
     A_DIFF_SMOOTH = atof(argv[8]);
+    beta = atof(argv[9]);
+    theta = atof(argv[10]);
   }
 
   std::cout << "SMOOTH Parameters: " << "ref_v" << ref_v << std::endl;
@@ -116,8 +120,8 @@ int main(int argc, char *argv[]) {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
-          double steer_value = j[1]["steering_angle"];
-          double throttle_value = j[1]["throttle"];
+          static double steer_value = j[1]["steering_angle"];
+          static double throttle_value = j[1]["throttle"];
           const double Lf = 2.67;
 
           /*
@@ -126,14 +130,14 @@ int main(int argc, char *argv[]) {
           * Both are in between [-1, 1].
           *
           */
-
+          /*
           // Add latency compensation
           double latency = 0.1;
           px = px + v * cos(psi) * latency;
           py = py + v * sin(psi) * latency;
           psi = psi + v * steer_value / Lf * latency;
           v = v + throttle_value * latency;
-
+          */
           // Convert map coordinates to car coordinates
           for (auto i = 0; i != ptsx.size(); i++) {
             double x_n = ptsx[i] - px;
@@ -155,9 +159,8 @@ int main(int argc, char *argv[]) {
 
           auto vars = mpc.Solve(state, coeffs);
 
-          const double beta = 0.5;
-          steer_value = beta * steer_value + (1 - beta) * vars[0] / (deg2rad(25) * Lf);
-          throttle_value = vars[1];
+          steer_value = beta * steer_value + (1 - beta) * vars[0] / deg2rad(25);
+          throttle_value = theta * throttle_value + (1 - theta) * vars[1];
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
@@ -200,9 +203,9 @@ int main(int argc, char *argv[]) {
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
 
-
+          std::cout << step++ << ": Steer: " << steer_value << " Throttle: " << throttle_value << std::endl;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
+          //std::cout << msg << std::endl;
           // Latency
           // The purpose is to mimic real driving conditions where
           // the car does actuate the commands instantly.
