@@ -6,8 +6,8 @@
 using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 20;
-double dt = 0.05;
+size_t N = 6;
+double dt = 0.15;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -39,6 +39,7 @@ double DELTA_SMOOTH = 5;
 double A_SMOOTH = 5;
 double DELTA_DIFF_SMOOTH = 200;
 double A_DIFF_SMOOTH = 10;
+double VC_SMOOTH = 1000;
 
 class FG_eval {
  public:
@@ -62,12 +63,20 @@ class FG_eval {
     for (int t = 0; t != N; t++) {
       fg[0] += CTE_SMOOTH * CppAD::pow(vars[cte_start + t], 2);
       fg[0] += EPSI_SMOOTH * CppAD::pow(vars[epsi_start + t], 2);
-      fg[0] += V_SMOOTH * CppAD::pow(vars[v_start + t] - ref_v, 2);
+      double curve = coeffs[3] * coeffs[3] + coeffs[2] * coeffs[2] + coeffs[1] * coeffs[1];
+      double curve_smooth = (1 - curve * VC_SMOOTH);
+      if (curve_smooth < 0.1)
+        curve_smooth = 0.1;
+      if (curve_smooth > 1)
+        curve_smooth = 1;
+      std::cout << "curve_smooth" << curve_smooth << std::endl;
+      fg[0] += V_SMOOTH * CppAD::pow(vars[v_start + t] - (curve_smooth * ref_v, 2);
     }
 
     for (int t = 0; t != N - 1; t++) {
       fg[0] += DELTA_SMOOTH * CppAD::pow(vars[delta_start + t], 2);
       fg[0] += A_SMOOTH * CppAD::pow(vars[a_start + t], 2);
+      fg[0] += VC_SMOOTH * CppAD::pow(vars[v_start + t] * coeffs[3], 2);
     }
 
     // Minimize the value gap between sequential actuations.

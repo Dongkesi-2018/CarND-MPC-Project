@@ -72,11 +72,11 @@ extern double DELTA_SMOOTH;
 extern double A_SMOOTH;
 extern double DELTA_DIFF_SMOOTH;
 extern double A_DIFF_SMOOTH;
+extern double VC_SMOOTH;
 extern double ref_v;
 extern size_t N;
 extern double dt;
 
-extern double dt;
 static double beta = 0.5;
 static double theta = 0.5;
 static int step = 0;
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
   // MPC is initialized here!
   MPC mpc;
 
-  if (argc == 13) {
+  if (argc == 12) {
     ref_v = atof(argv[1]);
     CTE_SMOOTH = atof(argv[2]);
     EPSI_SMOOTH = atof(argv[3]);
@@ -98,8 +98,9 @@ int main(int argc, char *argv[]) {
     A_DIFF_SMOOTH = atof(argv[8]);
     beta = atof(argv[9]);
     theta = atof(argv[10]);
-    N = atoi(argv[11]);
-    dt = atof(argv[12]);
+    VC_SMOOTH = atof(argv[11]);
+    //N = (size_t)(atof(argv[11]));
+    //dt = atof(argv[12]);
   }
 
   std::cout << "SMOOTH Parameters: " << "ref_v" << ref_v << std::endl;
@@ -213,6 +214,7 @@ int main(int argc, char *argv[]) {
           msgJson["next_y"] = next_y_vals;
 
           std::cout << step++ << ": Steer: " << steer_value << " Throttle: " << throttle_value << std::endl;
+          std::cout << "coeffs: " << coeffs << std::endl;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           //std::cout << msg << std::endl;
           // Latency
