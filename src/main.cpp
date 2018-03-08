@@ -73,18 +73,21 @@ extern double A_SMOOTH;
 extern double DELTA_DIFF_SMOOTH;
 extern double A_DIFF_SMOOTH;
 extern double ref_v;
+extern size_t N;
+extern double dt;
 
 extern double dt;
 static double beta = 0.5;
 static double theta = 0.5;
 static int step = 0;
+
 int main(int argc, char *argv[]) {
   uWS::Hub h;
 
   // MPC is initialized here!
   MPC mpc;
 
-  if (argc == 11) {
+  if (argc == 13) {
     ref_v = atof(argv[1]);
     CTE_SMOOTH = atof(argv[2]);
     EPSI_SMOOTH = atof(argv[3]);
@@ -95,6 +98,8 @@ int main(int argc, char *argv[]) {
     A_DIFF_SMOOTH = atof(argv[8]);
     beta = atof(argv[9]);
     theta = atof(argv[10]);
+    N = atoi(argv[11]);
+    dt = atof(argv[12]);
   }
 
   std::cout << "SMOOTH Parameters: " << "ref_v" << ref_v << std::endl;
@@ -130,14 +135,14 @@ int main(int argc, char *argv[]) {
           * Both are in between [-1, 1].
           *
           */
-
+/*
           // Add latency compensation
           double latency = 0.1;
           px = px + v * cos(psi) * latency;
           py = py + v * sin(psi) * latency;
           psi = psi + v * steer_value / Lf * latency;
           v = v + throttle_value * latency;
-
+*/
           // Convert map coordinates to car coordinates
           for (auto i = 0; i != ptsx.size(); i++) {
             double x_n = ptsx[i] - px;
