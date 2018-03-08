@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
           v = v + throttle_value * latency;
 
           // Convert map coordinates to car coordinates
-          for (auto i = 0; i != ptsx.size(); i++) {
+          for (size_t i = 0; i != ptsx.size(); i++) {
             double x_n = ptsx[i] - px;
             double y_n = ptsy[i] - py;
             ptsx[i] = x_n * cos(psi) + y_n * sin(psi);
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
           vector<double> next_y_vals;
 
           double poly_inc = 2.5;
-          int n_points = 25;
+          size_t n_points = 25;
           for (size_t i = 0; i != n_points; i++) {
             next_x_vals.push_back(poly_inc * i);
             next_y_vals.push_back(polyeval(coeffs, poly_inc * i));
