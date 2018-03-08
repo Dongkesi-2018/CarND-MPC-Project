@@ -6,7 +6,7 @@
 using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 10;
+size_t N = 8;
 double dt = 0.1;
 
 // This value assumes the model presented in the classroom is used.
@@ -21,7 +21,7 @@ double dt = 0.1;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
-double ref_v = 100;
+double ref_v = 140;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
@@ -32,14 +32,14 @@ size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
-double CTE_SMOOTH = 2000;
-double EPSI_SMOOTH = 2000;
-double V_SMOOTH = 1;
-double DELTA_SMOOTH = 5;
-double A_SMOOTH = 5;
-double DELTA_DIFF_SMOOTH = 200;
-double A_DIFF_SMOOTH = 10;
-double VC_SMOOTH = 1000;
+double CTE_W = 50;
+double EPSI_W = 300;
+double V_W = 1;
+double DELTA_W = 1;
+double A_W = 1;
+double DELTA_DIFF_W = 300;
+double A_DIFF_W = 5;
+double VC_W = 20;
 
 class FG_eval {
  public:
@@ -61,27 +61,29 @@ class FG_eval {
     // TODO: Define the cost related the reference state and
     // any anything you think may be beneficial.
     for (int t = 0; t != N; t++) {
-      fg[0] += CTE_SMOOTH * CppAD::pow(vars[cte_start + t], 2);
-      fg[0] += EPSI_SMOOTH * CppAD::pow(vars[epsi_start + t], 2);
+      fg[0] += CTE_W * CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += EPSI_W * CppAD::pow(vars[epsi_start + t], 2);
+      // Speed drop weight when sharp turn
+      // https://www.desmos.com/calculator/oiexhzavjp Polynomials visualization
       double curve = coeffs[3] * coeffs[3] + coeffs[2] * coeffs[2] + coeffs[1] * coeffs[1];
-      double curve_smooth = (1 - curve * VC_SMOOTH);
+      double curve_smooth = (1 - curve * VC_W);
       if (curve_smooth < 0.1)
         curve_smooth = 0.1;
       if (curve_smooth > 1)
         curve_smooth = 1;
       std::cout << "curve_smooth" << curve_smooth << std::endl;
-      fg[0] += V_SMOOTH * CppAD::pow(vars[v_start + t] - (curve_smooth * ref_v), 2);
+      fg[0] += V_W * CppAD::pow(vars[v_start + t] - (curve_smooth * ref_v), 2);
     }
 
     for (int t = 0; t != N - 1; t++) {
-      fg[0] += DELTA_SMOOTH * CppAD::pow(vars[delta_start + t], 2);
-      fg[0] += A_SMOOTH * CppAD::pow(vars[a_start + t], 2);
+      fg[0] += DELTA_W * CppAD::pow(vars[delta_start + t], 2);
+      fg[0] += A_W * CppAD::pow(vars[a_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
     for (int t = 0; t < N - 2; t++) {
-      fg[0] += DELTA_DIFF_SMOOTH * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-      fg[0] += A_DIFF_SMOOTH * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+      fg[0] += DELTA_DIFF_W * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+      fg[0] += A_DIFF_W * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
     //
     // Setup Constraints

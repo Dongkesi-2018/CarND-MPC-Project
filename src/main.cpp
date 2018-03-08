@@ -65,20 +65,20 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
   return result;
 }
 
-extern double CTE_SMOOTH;
-extern double EPSI_SMOOTH;
-extern double V_SMOOTH;
-extern double DELTA_SMOOTH;
-extern double A_SMOOTH;
-extern double DELTA_DIFF_SMOOTH;
-extern double A_DIFF_SMOOTH;
-extern double VC_SMOOTH;
+extern double CTE_W;
+extern double EPSI_W;
+extern double V_W;
+extern double DELTA_W;
+extern double A_W;
+extern double DELTA_DIFF_W;
+extern double A_DIFF_W;
+extern double VC_W;
 extern double ref_v;
 extern size_t N;
 extern double dt;
 
-static double beta = 0.5;
-static double theta = 0.5;
+static double beta = 0.3;
+static double theta = 0.3;
 static int step = 0;
 
 static double last_steer_value = 0;
@@ -92,22 +92,20 @@ int main(int argc, char *argv[]) {
 
   if (argc == 12) {
     ref_v = atof(argv[1]);
-    CTE_SMOOTH = atof(argv[2]);
-    EPSI_SMOOTH = atof(argv[3]);
-    V_SMOOTH = atof(argv[4]);
-    DELTA_SMOOTH = atof(argv[5]);
-    A_SMOOTH = atof(argv[6]);
-    DELTA_DIFF_SMOOTH = atof(argv[7]);
-    A_DIFF_SMOOTH = atof(argv[8]);
-    beta = atof(argv[9]);
-    theta = atof(argv[10]);
-    VC_SMOOTH = atof(argv[11]);
-    //N = (size_t)(atof(argv[11]));
-    //dt = atof(argv[12]);
+    CTE_W = atof(argv[2]);
+    EPSI_W = atof(argv[3]);
+    V_W = atof(argv[4]);
+    DELTA_W = atof(argv[5]);
+    A_W = atof(argv[6]);
+    DELTA_DIFF_W = atof(argv[7]);
+    A_DIFF_W = atof(argv[8]);
+    VC_W = atof(argv[9]);
+    beta = atof(argv[10]);
+    theta = atof(argv[11]);
   }
 
   std::cout << "SMOOTH Parameters: " << "ref_v" << ref_v << std::endl;
-  std::cout << "SMOOTH Parameters: " << "CTE_SMOOTH" << CTE_SMOOTH << std::endl;
+  std::cout << "SMOOTH Parameters: " << "CTE_SMOOTH" << CTE_W << std::endl;
 
   h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -151,14 +149,15 @@ int main(int argc, char *argv[]) {
           for (auto i = 0; i != ptsx.size(); i++) {
             double x_n = ptsx[i] - px;
             double y_n = ptsy[i] - py;
-
             ptsx[i] = x_n * cos(psi) + y_n * sin(psi);
             ptsy[i] = y_n * cos(psi) - x_n * sin(psi);
           }
+
           // https://stackoverflow.com/questions/26094379/typecasting-eigenvectorxd-to-stdvector
           Eigen::Map<Eigen::VectorXd> ptsx_e(&ptsx[0], ptsx.size());
           Eigen::Map<Eigen::VectorXd> ptsy_e(&ptsy[0], ptsy.size());
 
+          // Input
           auto coeffs = polyfit(ptsx_e, ptsy_e, 3);
           double cte = polyeval(coeffs,0);
           double epsi = - atan(coeffs[1]);
@@ -166,8 +165,11 @@ int main(int argc, char *argv[]) {
           Eigen::VectorXd state(6);
           state << 0, 0, 0, v, cte, epsi;
 
+          // Output
           auto vars = mpc.Solve(state, coeffs);
 
+          // Smooth steer and throttle
+          // Algorithm Reference: https://www.coursera.org/learn/deep-neural-network/lecture/XjuhD/bias-correction-in-exponentially-weighted-averages
           steer_value = beta * last_steer_value + (1 - beta) * vars[0] / deg2rad(25);
           last_steer_value = steer_value;
           if (steer_value > 1)
