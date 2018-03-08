@@ -81,6 +81,9 @@ static double beta = 0.5;
 static double theta = 0.5;
 static int step = 0;
 
+static double last_steer_value = 0;
+static double last_throttle_value = 0;
+
 int main(int argc, char *argv[]) {
   uWS::Hub h;
 
@@ -126,8 +129,8 @@ int main(int argc, char *argv[]) {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
-          static double steer_value = j[1]["steering_angle"];
-          static double throttle_value = j[1]["throttle"];
+          double steer_value = j[1]["steering_angle"];
+          double throttle_value = j[1]["throttle"];
           const double Lf = 2.67;
 
           /*
@@ -136,14 +139,14 @@ int main(int argc, char *argv[]) {
           * Both are in between [-1, 1].
           *
           */
-/*
+
           // Add latency compensation
           double latency = 0.1;
           px = px + v * cos(psi) * latency;
           py = py + v * sin(psi) * latency;
-          psi = psi + v * steer_value / Lf * latency;
+          psi = psi - v * steer_value / Lf * latency;
           v = v + throttle_value * latency;
-*/
+
           // Convert map coordinates to car coordinates
           for (auto i = 0; i != ptsx.size(); i++) {
             double x_n = ptsx[i] - px;
@@ -165,12 +168,14 @@ int main(int argc, char *argv[]) {
 
           auto vars = mpc.Solve(state, coeffs);
 
-          steer_value = beta * steer_value + (1 - beta) * vars[0] / deg2rad(25);
+          steer_value = beta * last_steer_value + (1 - beta) * vars[0] / deg2rad(25);
+          last_steer_value = steer_value;
           if (steer_value > 1)
             steer_value = 1;
           if (steer_value < -1)
             steer_value = -1;
-          throttle_value = theta * throttle_value + (1 - theta) * vars[1];
+          throttle_value = theta * last_throttle_value + (1 - theta) * vars[1];
+          last_throttle_value = throttle_value;
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.

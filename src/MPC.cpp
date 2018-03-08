@@ -6,8 +6,8 @@
 using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 6;
-double dt = 0.15;
+size_t N = 10;
+double dt = 0.1;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -61,7 +61,7 @@ class FG_eval {
     // TODO: Define the cost related the reference state and
     // any anything you think may be beneficial.
     for (int t = 0; t != N; t++) {
-      fg[0] += CTE_SMOOTH * CppAD::pow(vars[cte_start + t] + coeffs[0] * coeffs[0], 2);
+      fg[0] += CTE_SMOOTH * CppAD::pow(vars[cte_start + t], 2);
       fg[0] += EPSI_SMOOTH * CppAD::pow(vars[epsi_start + t], 2);
       double curve = coeffs[3] * coeffs[3] + coeffs[2] * coeffs[2] + coeffs[1] * coeffs[1];
       double curve_smooth = (1 - curve * VC_SMOOTH);
@@ -200,8 +200,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // degrees (values in radians).
   // NOTE: Feel free to change this to something else.
   for (int i = delta_start; i < a_start; i++) {
-    vars_lowerbound[i] = -0.436332 * Lf;
-    vars_upperbound[i] = 0.436332 * Lf;
+    vars_lowerbound[i] = -0.436332;
+    vars_upperbound[i] = 0.436332;
   }
 
   // Acceleration/decceleration upper and lower limits.
