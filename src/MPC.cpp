@@ -61,7 +61,7 @@ class FG_eval {
     // TODO: Define the cost related the reference state and
     // any anything you think may be beneficial.
     for (int t = 0; t != N; t++) {
-      fg[0] += CTE_SMOOTH * CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += CTE_SMOOTH * CppAD::pow(vars[cte_start + t] + coeffs[0] * coeffs[0], 2);
       fg[0] += EPSI_SMOOTH * CppAD::pow(vars[epsi_start + t], 2);
       double curve = coeffs[3] * coeffs[3] + coeffs[2] * coeffs[2] + coeffs[1] * coeffs[1];
       double curve_smooth = (1 - curve * VC_SMOOTH);
@@ -70,13 +70,12 @@ class FG_eval {
       if (curve_smooth > 1)
         curve_smooth = 1;
       std::cout << "curve_smooth" << curve_smooth << std::endl;
-      fg[0] += V_SMOOTH * CppAD::pow(vars[v_start + t] - (curve_smooth * ref_v, 2);
+      fg[0] += V_SMOOTH * CppAD::pow(vars[v_start + t] - (curve_smooth * ref_v), 2);
     }
 
     for (int t = 0; t != N - 1; t++) {
       fg[0] += DELTA_SMOOTH * CppAD::pow(vars[delta_start + t], 2);
       fg[0] += A_SMOOTH * CppAD::pow(vars[a_start + t], 2);
-      fg[0] += VC_SMOOTH * CppAD::pow(vars[v_start + t] * coeffs[3], 2);
     }
 
     // Minimize the value gap between sequential actuations.
