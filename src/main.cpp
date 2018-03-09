@@ -130,6 +130,9 @@ int main(int argc, char *argv[]) {
           double throttle_value = j[1]["throttle"];
           const double Lf = 2.67;
 
+          // Convert mph to m/s
+          v *= 0.44731;
+
           /*
           * TODO: Calculate steering angle and throttle using MPC.
           *
@@ -169,13 +172,9 @@ int main(int argc, char *argv[]) {
 
           // Smooth steer and throttle
           // Algorithm Reference: https://www.coursera.org/learn/deep-neural-network/lecture/XjuhD/bias-correction-in-exponentially-weighted-averages
+          // The optimizer outputs steering angles in radians. [-0.46332, +0.46332] radians / 0.46332 radians = [-1, 1]
           steer_value = beta * last_steer_value + (1 - beta) * vars[0] / deg2rad(25);
           last_steer_value = steer_value;
-          // The simulator takes as input values in[-1, 1]
-          if (steer_value > 1)
-            steer_value = 1;
-          if (steer_value < -1)
-            steer_value = -1;
           throttle_value = theta * last_throttle_value + (1 - theta) * vars[1];
           last_throttle_value = throttle_value;
 
