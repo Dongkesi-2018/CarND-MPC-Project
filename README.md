@@ -4,7 +4,11 @@ Self-Driving Car Engineer Nanodegree Program
 ---
 ## Run System
  
-./mpc 140 40 500 1 1 1 500 5 30 0.3 0.3
+./mpc 140 50 300 1 1 1 500 5 30 0.3 0.3
+
+Performance: max speed 108MPH on the straights.
+
+[![Watch the video](./writeup_res/mpc.png)](https://youtu.be/uFqQtsL1MkU)
 
 ## Implementation
 
