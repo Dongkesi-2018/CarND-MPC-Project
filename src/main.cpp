@@ -125,6 +125,7 @@ int main(int argc, char *argv[]) {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+          /* The simulator return [-0.46332, +0.46332] radians*/
           double steer_value = j[1]["steering_angle"];
           double throttle_value = j[1]["throttle"];
           const double Lf = 2.67;
@@ -170,6 +171,7 @@ int main(int argc, char *argv[]) {
           // Algorithm Reference: https://www.coursera.org/learn/deep-neural-network/lecture/XjuhD/bias-correction-in-exponentially-weighted-averages
           steer_value = beta * last_steer_value + (1 - beta) * vars[0] / deg2rad(25);
           last_steer_value = steer_value;
+          // The simulator takes as input values in[-1, 1]
           if (steer_value > 1)
             steer_value = 1;
           if (steer_value < -1)
