@@ -13,9 +13,9 @@ I get a good process description about MPC in this [document](http://cse.lab.imt
 
 ### The Model
 
-**Veichle Model**
+**Vehicle  Model**
 
-This picture is a veichle model, but in this project, because of the inconsistent angle of the simulator, need to invert delta_t(steer_value).
+This picture is a vehicle model, but in this project, because of the inconsistent angle of the simulator, need to invert delta_t(steer_value).
 
 <img src="./writeup_res/vmodel.png" height="50%" width="50%" alt="vmodel" />
 
@@ -53,7 +53,7 @@ We use vehicle model as constraints and then set their scope. The first constrai
 **Model Constrains**
 
 ```c++
-  // frist constraint
+  // first constraint
   fg[1 + x_start] = vars[x_start];
   fg[1 + y_start] = vars[y_start];
   fg[1 + psi_start] = vars[psi_start];
@@ -198,7 +198,7 @@ for (size_t t = 0; t < N - 2; t++) {
 
 **Update**
 
-Put the initial state, cost function, constraints, etc. into the model, and finally use the IPOPT tool to find a optimal values for actuator. Here, I made further smoothing of the actuator input using this [algorithm]( https://www.coursera.org/learn/deep-neural-network/lecture/XjuhD/bias-correction-in-exponentially-weighted-averages).
+Put the initial state, cost function, constraints, etc. into the model, and finally use the IPOPT tool to find an optimal values for actuator. Here, I made further smoothing of the actuator input using this [algorithm]( https://www.coursera.org/learn/deep-neural-network/lecture/XjuhD/bias-correction-in-exponentially-weighted-averages).
 
 ```c++
 steer_value = beta * last_steer_value + (1 - beta) * vars[0] / deg2rad(25);
@@ -215,7 +215,7 @@ last_throttle_value = throttle_value;
 ### Timestep Length and Elapsed Duration (N & dt)
 
 I think under the premise of the work well model, the smaller the N, the faster the calculation. Larger values of dt result in less frequent actuations, which makes it harder to accurately approximate a continuous reference trajectory. 
-I've tried a lot of combinations using a large dt (N=6, dt=0.15) to handle the simulator's latency before, but the system oscillates so much at high speed that I gave up using dt to handle the latency and use the veichle model formula to predict. After that, I adjusted dt, whether it was too large or too small to cause oscillation, and finally chose the current parameters. About N, I decided to choose the minimum value that would enable the system to work properly, thus minimizing computational losses.
+I've tried a lot of combinations using a large dt (N=6, dt=0.15) to handle the simulator's latency before, but the system oscillates so much at high speed that I gave up using dt to handle the latency and use the vehicle model formula to predict. After that, I adjusted dt, whether it was too large or too small to cause oscillation, and finally chose the current parameters. About N, I decided to choose the minimum value that would enable the system to work properly, thus minimizing computational losses.
 
 ```c++
     static size_t N = 8;
@@ -243,7 +243,7 @@ I calculate the MPC latency compensation described in next section, then use the
 
 ### Model Predictive Control with Latency
 
-The biggest advantage of MPC over PID is that it can handle system latency by vehicle kinematic model. I use the state returned by the simulator to predict the state of lantency by veichle model. Then feed these states to Solver to get a good control action. In the car coordinate system, the car is the origin of coordinates, and its direction is the x-axis, so here px, py, psi is 0. Based on this, calculate cte and epsi, the code seems much simpler.
+The biggest advantage of MPC over PID is that it can handle system latency by vehicle kinematic model. I use the state returned by the simulator to predict the state of latency by vehicle model. Then feed these states to Solver to get a good control action. In the car coordinate system, the car is the origin of coordinates, and its direction is the x-axis, so here px, py and psi are 0. Based on this, calculate cte and epsi, the code seems much simpler.
 
 ```c++
   // Add latency compensation
