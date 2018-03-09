@@ -2,28 +2,31 @@
 Self-Driving Car Engineer Nanodegree Program
 
 ---
-## Run System
+## 1. Run System
  
-./mpc 140 50 300 1 1 1 500 5 30 0.3 0.3
+Command: ./mpc 140 50 300 1 1 1 500 5 30 0.3 0.3
+
+## 2. Output Video
 
 Performance: max speed 108MPH on the straights.
 
 [![Watch the video](./writeup_res/mpc.png)](https://youtu.be/uFqQtsL1MkU)
 
-## Implementation
+## 3. Implementation
 
 I get a good process description about MPC in this [document](http://cse.lab.imtlucca.it/~bemporad/teaching/mpc/imt/1-mpc.pdf).
 > MPC uses a simplified dynamical model of the process to predict its likely future evolution and choose **a good** control action.
 
-### The Model
+### 3.1. The Model
 
-**Vehicle  Model**
+#### 3.1.1. Vehicle  Model
 
 This picture is a vehicle model, but in this project, because of the inconsistent angle of the simulator, need to invert delta_t(steer_value).
 
 <img src="./writeup_res/vmodel.png" height="50%" width="50%" alt="vmodel" />
 
-**State**
+#### 3.1.2. States
+
 There are 6 states in this project. Note that the simulator return steer_value in [-0.46332, +0.46332] radians here. The value here is only obtained from the simulator, and the latency of the simulator needs to be considered. The final input state is calculated by the veichle model.
 
 ```c++
@@ -40,7 +43,7 @@ After the waypoints coordinate transformation, and after fitting out the traject
   double epsi = - atan(coeffs[1]);
 ```
 
-**Actuators**
+#### 3.1.3. Actuators
 
 The car simplifies all actuator devices to steering and acceleration. Although the throttle here is not an acceleration value, we can roughly think that it is.
 
@@ -50,7 +53,7 @@ The car simplifies all actuator devices to steering and acceleration. Although t
   double throttle_value = j[1]["throttle"];
 ```
 
-**Constrains**
+#### 3.1.4. Constrains
 
 We use vehicle model as constraints and then set their scope. The first constraint should be the input of the state.
 
@@ -149,9 +152,9 @@ We use vehicle model as constraints and then set their scope. The first constrai
   constraints_upperbound[epsi_start] = epsi;
 ```
 
-**Cost**
+#### 3.1.5. Cost
 
-Weight description:
+**Weight description:**
 
 * CTE_W: Cross track error weight. Large values respond quickly to off-course recovery.
 * EPSI_W: Orientation error weight. Used to optimize oscillation.
@@ -168,7 +171,7 @@ Although there is a [formula](https://en.wikipedia.org/wiki/Curvature) for calcu
 double curve = coeffs[3] * coeffs[3] + coeffs[2] * coeffs[2] + coeffs[1] * coeffs[1];
 ```
 
-Cost Calculation:
+**Cost Calculation:**
 
 ```c++
 // Reference State Cost
@@ -200,7 +203,7 @@ for (size_t t = 0; t < N - 2; t++) {
 
 ```
 
-**Update**
+#### 3.1.6. Update
 
 Put the initial state, cost function, constraints, etc. into the model, and finally use the IPOPT tool to find an optimal values for actuator. Here, I made further smoothing of the actuator input using this [algorithm]( https://www.coursera.org/learn/deep-neural-network/lecture/XjuhD/bias-correction-in-exponentially-weighted-averages).
 
@@ -216,7 +219,7 @@ throttle_value = theta * last_throttle_value + (1 - theta) * vars[1];
 last_throttle_value = throttle_value;
 ```
 
-### Timestep Length and Elapsed Duration (N & dt)
+### 3.2. Timestep Length and Elapsed Duration (N & dt)
 
 I think under the premise of the work well model, the smaller the N, the faster the calculation. Larger values of dt result in less frequent actuations, which makes it harder to accurately approximate a continuous reference trajectory. 
 I've tried a lot of combinations using a large dt (N=6, dt=0.15) to handle the simulator's latency before, but the system oscillates so much at high speed that I gave up using dt to handle the latency and use the vehicle model formula to predict. After that, I adjusted dt, whether it was too large or too small to cause oscillation, and finally chose the current parameters. About N, I decided to choose the minimum value that would enable the system to work properly, thus minimizing computational losses.
@@ -226,7 +229,7 @@ I've tried a lot of combinations using a large dt (N=6, dt=0.15) to handle the s
     static double dt = 0.1;
 ```
 
-### Polynomial Fitting and MPC Preprocessing
+### 3.3. Polynomial Fitting and MPC Preprocessing
 
 I calculate the MPC latency compensation described in next section, then use the calculated state value (px, py, psi) to transform the map coordinates to the car coordinates. Then use these waypoints to fit a cubic polynomial as a reference line.
 
@@ -245,7 +248,7 @@ I calculate the MPC latency compensation described in next section, then use the
   auto coeffs = polyfit(ptsx_e, ptsy_e, 3);
 ```
 
-### Model Predictive Control with Latency
+### 3.4. Model Predictive Control with Latency
 
 The biggest advantage of MPC over PID is that it can handle system latency by vehicle kinematic model. I use the state returned by the simulator to predict the state of latency by vehicle model. Then feed these states to Solver to get a good control action. In the car coordinate system, the car is the origin of coordinates, and its direction is the x-axis, so here px, py and psi are 0. Based on this, calculate cte and epsi, the code seems much simpler.
 
@@ -263,6 +266,8 @@ The biggest advantage of MPC over PID is that it can handle system latency by ve
   // In car coordinates, px, py, psi is zeros.
   state << 0, 0, 0, v, cte, epsi;
 ```
+
+---
 
 ## Dependencies
 
